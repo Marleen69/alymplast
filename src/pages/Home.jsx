@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { useLanguage } from '../contexts/LanguageContext'
 import { translations } from '../data/translations'
 import Calculator from '../components/Calculator'
+import Text3D from '../components/Text3D'
 
 const Home = () => {
   const { language } = useLanguage()
@@ -20,14 +21,9 @@ const Home = () => {
             transition={{ duration: 0.8 }}
             className="text-center max-w-4xl mx-auto"
           >
-            <motion.h1
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-              className="text-6xl md:text-7xl font-bold text-gray-900 mb-6"
-            >
+            <Text3D className="text-6xl md:text-7xl font-bold text-gray-900 mb-6">
               {t.heroTitle}
-            </motion.h1>
+            </Text3D>
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
