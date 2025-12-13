@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    outline: none;
+    border: none;
+  }
+  body {
+    @apply bg-white text-gray-900 font-sans;
+  }
+}
+
+@layer utilities {
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Leaflet map styles */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+}
+
+
+
+
+
+
