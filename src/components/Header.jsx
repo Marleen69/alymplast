@@ -2,22 +2,53 @@ import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useFavorites } from '../contexts/FavoritesContext' // 1. Импортируем хук
 import { translations } from '../data/translations'
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [user, setUser] = useState(null)
+  const [isDark, setIsDark] = useState(localStorage.getItem('theme') === 'dark')
+
   const { language, toggleLanguage } = useLanguage()
+  const { favorites } = useFavorites() // 2. Получаем список избранного
   const location = useLocation()
   const t = translations[language]
 
+  // ... (весь твой useEffect для тем и скролла остается без изменений)
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50)
+    if (isDark) {
+      document.documentElement.classList.add('dark')
+      localStorage.setItem('theme', 'dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+      localStorage.setItem('theme', 'light')
     }
+  }, [isDark])
+
+  const checkUser = () => {
+    const savedUser = localStorage.getItem('current_user')
+    if (savedUser) setUser(JSON.parse(savedUser))
+    else setUser(null)
+  }
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 50)
+    checkUser()
     window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    window.addEventListener('storage', checkUser)
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('storage', checkUser)
+    }
   }, [])
+
+  const handleLogout = () => {
+    localStorage.removeItem('current_user')
+    setUser(null)
+    window.dispatchEvent(new Event('storage'))
+  }
 
   const navItems = [
     { path: '/', label: t.home },
@@ -30,23 +61,19 @@ const Header = () => {
     <motion.header
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      transition={{ duration: 0.5 }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? 'bg-white/95 backdrop-blur-md shadow-lg'
-          : 'bg-white/80 backdrop-blur-sm'
+          ? 'bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-lg'
+          : 'bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm'
       }`}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="text-2xl font-bold text-primary-600"
-            >
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
               AlymPlast
-            </motion.div>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
@@ -55,60 +82,52 @@ const Header = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`relative text-sm font-medium transition-colors ${
+                className={`text-sm font-medium transition-colors ${
                   location.pathname === item.path
-                    ? 'text-primary-600'
-                    : 'text-gray-700 hover:text-primary-600'
+                    ? 'text-blue-600'
+                    : 'text-gray-700 dark:text-gray-300 hover:text-blue-600'
                 }`}
               >
                 {item.label}
-                {location.pathname === item.path && (
-                  <motion.div
-                    layoutId="navbar-indicator"
-                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary-600"
-                    initial={false}
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                  />
-                )}
               </Link>
             ))}
           </nav>
 
-          {/* Language Toggle & Mobile Menu Button */}
           <div className="flex items-center space-x-4">
+            
+            {/* 3. КНОПКА ИЗБРАННОГО (рядом с темой) */}
+            <Link to="/favorites" className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-red-500 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+              </svg>
+              {favorites.length > 0 && (
+                <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                  {favorites.length}
+                </span>
+              )}
+            </Link>
+
             <button
-              onClick={toggleLanguage}
-              className="px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors rounded-lg"
+              onClick={() => setIsDark(!isDark)}
+              className="p-2 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-yellow-400"
             >
-              {language === 'ru' ? 'EN' : 'RU'}
+              {isDark ? "🌙" : "☀️"}
             </button>
 
-            {/* Mobile Menu Button */}
-            <button
+            <button onClick={toggleLanguage} className="font-bold text-gray-700 dark:text-gray-300">
+              {language.toUpperCase()}
+            </button>
+
+            {/* КНОПКА БУРГЕРА */}
+            <button 
+              className="md:hidden p-2 text-gray-700 dark:text-gray-300"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 text-gray-700 hover:text-primary-600"
-              aria-label="Toggle menu"
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {isMobileMenuOpen ? (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 ) : (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 )}
               </svg>
             </button>
@@ -116,32 +135,44 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* МОБИЛЬНОЕ МЕНЮ */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="md:hidden bg-white"
+            className="md:hidden bg-white dark:bg-slate-900 border-t dark:border-slate-800"
           >
-            <nav className="container mx-auto px-4 py-4 space-y-3">
+            <div className="px-4 py-6 space-y-4">
               {navItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`block py-2 text-base font-medium ${
-                    location.pathname === item.path
-                      ? 'text-primary-600'
-                      : 'text-gray-700 hover:text-primary-600'
-                  }`}
+                  className="block text-lg font-medium text-gray-700 dark:text-gray-200"
                 >
                   {item.label}
                 </Link>
               ))}
-            </nav>
+              
+              {/* Добавим избранное и в мобилку для удобства */}
+              <Link 
+                to="/favorites" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center space-x-2 text-lg font-medium text-gray-700 dark:text-gray-200"
+              >
+                <span>{language === 'ru' ? 'Избранное' : 'Favorites'}</span>
+                <span className="text-red-500">({favorites.length})</span>
+              </Link>
+
+              {user && (
+                <div className="pt-4 border-t dark:border-slate-800 flex justify-between items-center">
+                  <span className="dark:text-gray-200">{user.username}</span>
+                  <button onClick={handleLogout} className="text-red-500">Выйти</button>
+                </div>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -150,9 +181,3 @@ const Header = () => {
 }
 
 export default Header
-
-
-
-
-
-

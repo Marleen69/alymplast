@@ -17,7 +17,6 @@ const Contacts = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    // Mock отправка формы
     console.log('Form submitted:', formData)
     setIsSubmitted(true)
     setTimeout(() => {
@@ -80,7 +79,7 @@ const Contacts = () => {
                   </h3>
                   <a
                     href="tel:+996505200091"
-                    className="text-lg text-primary-600 hover:text-primary-700"
+                    className="text-lg text-primary-600 hover:text-primary-700 font-bold"
                   >
                     +996 505 200 091
                   </a>
@@ -149,7 +148,8 @@ const Contacts = () => {
                       value={formData.name}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-2 rounded-lg"
+                      placeholder={language === 'ru' ? "Как к вам обращаться?" : "Your name"}
+                      className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition"
                     />
                   </div>
 
@@ -163,7 +163,8 @@ const Contacts = () => {
                       value={formData.email}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-2 rounded-lg"
+                      placeholder="example@mail.com"
+                      className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition"
                     />
                   </div>
 
@@ -177,7 +178,8 @@ const Contacts = () => {
                       value={formData.phone}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-2 rounded-lg"
+                      placeholder={language === 'ru' ? "+996 ___ __ __ __" : "Your phone number"}
+                      className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition"
                     />
                   </div>
 
@@ -191,7 +193,8 @@ const Contacts = () => {
                       onChange={handleChange}
                       required
                       rows="5"
-                      className="w-full px-4 py-2 rounded-lg"
+                      placeholder={language === 'ru' ? "Опишите ваш вопрос или какие окна вас интересуют..." : "How can we help you?"}
+                      className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition"
                     />
                   </div>
 
@@ -212,9 +215,3 @@ const Contacts = () => {
 }
 
 export default Contacts
-
-
-
-
-
-

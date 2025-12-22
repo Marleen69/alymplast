@@ -1,7 +1,6 @@
 import { Suspense, useRef } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera, Environment } from '@react-three/drei'
-import { Mesh } from 'three'
 
 // Простая 3D модель-заглушка (коробка)
 const Box = ({ position = [0, 0, 0] }) => {
@@ -15,7 +14,8 @@ const Box = ({ position = [0, 0, 0] }) => {
 
   return (
     <mesh ref={meshRef} position={position}>
-      <boxGeometry args={[2, 2, 2]} />
+      {/* УМЕНЬШЕНО: размер куба теперь 1.2 вместо 2 */}
+      <boxGeometry args={[1.2, 1.2, 1.2]} />
       <meshStandardMaterial color="#0ea5e9" metalness={0.5} roughness={0.3} />
     </mesh>
   )
@@ -23,10 +23,12 @@ const Box = ({ position = [0, 0, 0] }) => {
 
 const Product3DViewer = () => {
   return (
-    <div className="w-full h-96 rounded-lg overflow-hidden bg-gray-100">
+    /* h-64 УМЕНЬШАЕТ высоту всего блока */
+    <div className="w-full h-64 rounded-xl overflow-hidden bg-gray-50 border border-gray-100">
       <Canvas shadows>
         <Suspense fallback={null}>
-          <PerspectiveCamera makeDefault position={[0, 0, 5]} />
+          {/* position [0, 0, 6] отдаляет камеру, делая объект визуально меньше */}
+          <PerspectiveCamera makeDefault position={[0, 0, 6]} />
           <ambientLight intensity={0.5} />
           <directionalLight position={[5, 5, 5]} intensity={1} castShadow />
           <pointLight position={[-5, -5, -5]} intensity={0.5} />
@@ -46,9 +48,3 @@ const Product3DViewer = () => {
 }
 
 export default Product3DViewer
-
-
-
-
-
-
