@@ -154,7 +154,7 @@ const About = () => {
                 label: language === 'ru' ? 'Лет опыта' : 'Years of Experience',
               },
               {
-                number: '500+',
+                number: '5000+',
                 label: language === 'ru' ? 'Довольных клиентов' : 'Happy Clients',
               },
               {
