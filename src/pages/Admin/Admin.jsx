@@ -1,12 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { products as initialProducts } from '../../data/products';
-import { initialTeam } from '../../data/team'; // Не забудь создать этот файл или массив
-import { Link } from 'react-router-dom';
+import { initialTeam } from '../../data/team'; 
+import { Link, useNavigate } from 'react-router-dom';
 
 const Admin = () => {
-  const [activeTab, setActiveTab] = useState('products'); // Переключатель: products или team
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('products');
+  const [isAuthorized, setIsAuthorized] = useState(false); // Состояние авторизации
+  const [passwordInput, setPasswordInput] = useState(''); // Для ввода пароля
 
-  // --- ЛОГИКА ТОВАРОВ ---
+  // --- ЛОГИКА АВТОРИЗАЦИИ ---
+  useEffect(() => {
+    const adminToken = localStorage.getItem('admin_access');
+    if (adminToken === 'true') {
+      setIsAuthorized(true);
+    }
+  }, []);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    // Установи свой пароль здесь (например: alym777)
+    if (passwordInput === 'alym777') {
+      localStorage.setItem('admin_access', 'true');
+      setIsAuthorized(true);
+    } else {
+      alert('Неверный пароль!');
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('admin_access');
+    setIsAuthorized(false);
+    navigate('/'); // Редирект на главную при выходе
+  };
+
+  // --- ТВОЯ ЛОГИКА ТОВАРОВ ---
   const [products, setProducts] = useState(() => {
     const saved = localStorage.getItem('site_products');
     return saved ? JSON.parse(saved) : initialProducts;
@@ -19,13 +47,12 @@ const Admin = () => {
     inStock: true
   });
 
-  // --- ЛОГИКА КОМАНДЫ ---
+  // --- ТВОЯ ЛОГИКА КОМАНДЫ ---
   const [team, setTeam] = useState(() => {
     const saved = localStorage.getItem('site_team');
     return saved ? JSON.parse(saved) : initialTeam;
   });
 
-  // Сохранение при изменениях
   useEffect(() => {
     localStorage.setItem('site_products', JSON.stringify(products));
   }, [products]);
@@ -34,7 +61,6 @@ const Admin = () => {
     localStorage.setItem('site_team', JSON.stringify(team));
   }, [team]);
 
-  // Функции для товаров
   const toggleStock = (id) => {
     setProducts(products.map(p => p.id === id ? { ...p, inStock: !p.inStock } : p));
   };
@@ -53,17 +79,53 @@ const Admin = () => {
     alert('Товар добавлен!');
   };
 
-  // Функция для обновления сотрудника
   const updateMember = (id, field, value) => {
     setTeam(team.map(m => m.id === id ? { ...m, [field]: value } : m));
   };
 
+  // --- ЭКРАН ВХОДА ---
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-900 px-4">
+        <form onSubmit={handleLogin} className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-black text-slate-800">ALIM<span className="text-blue-600">PLAST</span></h2>
+            <p className="text-gray-500 text-sm mt-2">Вход в панель администратора</p>
+          </div>
+          <div className="space-y-4">
+            <input 
+              type="password" 
+              placeholder="Введите пароль" 
+              className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-center text-xl tracking-widest"
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              autoFocus
+            />
+            <button className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all active:scale-95">
+              Войти в систему
+            </button>
+          </div>
+          <Link to="/" className="block text-center mt-6 text-gray-400 text-sm hover:text-gray-600 transition">
+            Вернуться на сайт
+          </Link>
+        </form>
+      </div>
+    );
+  }
+
+  // --- ОСНОВНАЯ ПАНЕЛЬ (Показывается только если авторизован) ---
   return (
     <div className="min-h-screen bg-gray-100 p-4 md:p-8 font-sans">
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Панель управления <span className="text-blue-600">AlymPlast</span></h1>
-          <Link to="/" className="bg-white px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50 transition border border-gray-200">← На сайт</Link>
+        <div className="flex justify-between items-center mb-8 bg-white p-4 rounded-2xl shadow-sm border border-gray-200">
+          <div>
+            <h1 className="text-2xl font-black text-gray-800 tracking-tight">Панель управления <span className="text-blue-600 italic underline">AlymPlast</span></h1>
+            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-[0.2em]">Authorized Session</p>
+          </div>
+          <div className="flex gap-3">
+            <Link to="/" className="hidden md:block bg-gray-50 px-4 py-2 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-100 transition border border-gray-200">На сайт</Link>
+            <button onClick={handleLogout} className="bg-red-50 text-red-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-red-100 transition border border-red-100">Выход</button>
+          </div>
         </div>
 
         {/* ПЕРЕКЛЮЧАТЕЛЬ ВКЛАДОК */}
