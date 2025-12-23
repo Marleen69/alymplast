@@ -10,6 +10,7 @@ const Home = () => {
   const t = translations[language]
 
   return (
+    
     <div className="pt-20">
       {/* Hero Section */}
       <section className="relative min-h-[90vh] flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-primary-50 overflow-hidden">
@@ -138,6 +139,7 @@ const Home = () => {
         </div>
       </section>
     </div>
+    
   )
 }
 

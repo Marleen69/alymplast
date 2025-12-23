@@ -14,21 +14,35 @@ const Admin = () => {
   const [hasChanges, setHasChanges] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
+  // Безопасная загрузка продуктов
   const [products, setProducts] = useState(() => {
     try {
       const saved = localStorage.getItem('site_products');
-      return saved ? JSON.parse(saved) : initialProducts;
-    } catch (e) { return initialProducts; }
+      const parsed = saved ? JSON.parse(saved) : initialProducts;
+      // Фильтруем сразу при загрузке, чтобы убрать возможный null или undefined
+      return Array.isArray(parsed) ? parsed.filter(p => p && typeof p === 'object') : initialProducts;
+    } catch (e) { 
+      return initialProducts; 
+    }
   });
 
   const [team, setTeam] = useState(() => {
     try {
       const saved = localStorage.getItem('site_team');
-      return saved ? JSON.parse(saved) : initialTeam;
-    } catch (e) { return initialTeam; }
+      const parsed = saved ? JSON.parse(saved) : initialTeam;
+      return Array.isArray(parsed) ? parsed.filter(t => t && typeof t === 'object') : initialTeam;
+    } catch (e) { 
+      return initialTeam; 
+    }
   });
 
-  const [newProduct, setNewProduct] = useState({ name: '', category: 'windows', price: '', inStock: true, image: '' });
+  const [newProduct, setNewProduct] = useState({ 
+    name: '', 
+    category: 'windows', 
+    price: '', 
+    inStock: true, 
+    image: '' 
+  });
 
   useEffect(() => {
     if (localStorage.getItem('admin_access') === 'true') setIsAuthorized(true);
@@ -39,7 +53,9 @@ const Admin = () => {
     if (passwordInput === 'alym777') {
       localStorage.setItem('admin_access', 'true');
       setIsAuthorized(true);
-    } else { alert('Неверный пароль!'); }
+    } else { 
+      alert('Неверный пароль!'); 
+    }
   };
 
   const handleLogout = () => {
@@ -48,9 +64,12 @@ const Admin = () => {
     navigate('/');
   };
 
-  const filteredProducts = products.filter(p => {
-    const name = p?.name || ""; 
-    return name.toLowerCase().includes(searchQuery.toLowerCase());
+  // ИСПРАВЛЕННЫЙ ФИЛЬТР (Устранение ошибки toLowerCase)
+  const filteredProducts = (products || []).filter(p => {
+    if (!p || !p.name) return false; // Пропускаем «битые» объекты без имени
+    const name = String(p.name).toLowerCase();
+    const query = (searchQuery || "").toLowerCase();
+    return name.includes(query);
   });
 
   const handleSaveAll = () => {
@@ -61,10 +80,21 @@ const Admin = () => {
     setTimeout(() => setShowToast(false), 3000);
   };
 
+  // ИСПРАВЛЕННОЕ ДОБАВЛЕНИЕ (Защита от пустых данных)
   const handleAddProduct = (e) => {
     e.preventDefault();
-    if (!newProduct.name.trim()) return;
-    setProducts([{ ...newProduct, id: Date.now() }, ...products]);
+    if (!newProduct.name || !newProduct.name.trim()) {
+        alert("Введите название товара!");
+        return;
+    }
+    
+    const productObj = { 
+      ...newProduct, 
+      id: Date.now(),
+      name: newProduct.name.trim() 
+    };
+
+    setProducts([productObj, ...products]);
     setNewProduct({ name: '', category: 'windows', price: '', inStock: true, image: '' });
     setHasChanges(true);
   };
@@ -87,11 +117,18 @@ const Admin = () => {
 
   if (!isAuthorized) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0f172a] p-4 font-sans text-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-[#0f172a] p-4 font-sans">
         <form onSubmit={handleLogin} className="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-md text-center">
           <h2 className="text-3xl font-black text-slate-800 mb-2">ALIM<span className="text-blue-600">PLAST</span></h2>
           <p className="text-gray-400 mb-8 text-sm uppercase tracking-widest font-bold">Admin Panel</p>
-          <input type="password" placeholder="Пароль" className="w-full p-5 bg-gray-50 border-2 border-gray-100 rounded-3xl mb-4 text-center text-2xl outline-none focus:border-blue-500 transition-all" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} autoFocus />
+          <input 
+            type="password" 
+            placeholder="Пароль" 
+            className="w-full p-5 bg-gray-50 border-2 border-gray-100 rounded-3xl mb-4 text-center text-2xl outline-none focus:border-blue-500 transition-all" 
+            value={passwordInput} 
+            onChange={(e) => setPasswordInput(e.target.value)} 
+            autoFocus 
+          />
           <button className="w-full bg-blue-600 text-white font-bold py-5 rounded-3xl hover:bg-blue-700 transition-all">Войти</button>
         </form>
       </div>
@@ -115,13 +152,13 @@ const Admin = () => {
         </div>
 
         {activeTab === 'products' ? (
-          <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="space-y-10">
             {/* STATS */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
               {[
                 { label: 'Всего', val: products.length, color: 'text-slate-800' },
-                { label: 'В наличии', val: products.filter(p => p.inStock).length, color: 'text-emerald-500' },
-                { label: 'Скрыто', val: products.filter(p => !p.inStock).length, color: 'text-rose-500' },
+                { label: 'В наличии', val: products.filter(p => p?.inStock).length, color: 'text-emerald-500' },
+                { label: 'Скрыто', val: products.filter(p => !p?.inStock).length, color: 'text-rose-500' },
                 { label: 'Найдено', val: filteredProducts.length, color: 'text-blue-600' }
               ].map((stat, i) => (
                 <div key={i} className="bg-white p-7 rounded-[2.5rem] shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
@@ -140,22 +177,21 @@ const Admin = () => {
               <form onSubmit={handleAddProduct} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div className="space-y-2">
                     <label className="text-[11px] font-black text-slate-400 uppercase ml-2">Название</label>
-                    <input type="text" placeholder="Напр: Окно Akfa 120x150" className="w-full p-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 border border-slate-100" required value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} />
+                    <input type="text" placeholder="Напр: Окно Akfa 120x150" className="w-full p-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 border border-slate-100 text-slate-900" required value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} />
                 </div>
                 <div className="space-y-2">
                     <label className="text-[11px] font-black text-slate-400 uppercase ml-2">Категория</label>
-                    <select className="w-full p-4 bg-slate-50 rounded-2xl outline-none border border-slate-100 appearance-none" value={newProduct.category} onChange={e => setNewProduct({...newProduct, category: e.target.value})}>
+                    <select className="w-full p-4 bg-slate-50 rounded-2xl outline-none border border-slate-100 appearance-none text-slate-900" value={newProduct.category} onChange={e => setNewProduct({...newProduct, category: e.target.value})}>
                         <option value="windows">Окна</option>
                         <option value="doors">Двери</option>
                         <option value="akfa">Akfa Special</option>
                     </select>
                 </div>
                 <div className="space-y-2">
-                    <label className="text-[11px] font-black text-slate-400 uppercase ml-2">Цена (строкой)</label>
-                    <input type="text" placeholder="Напр: 150 000 сум" className="w-full p-4 bg-slate-50 rounded-2xl outline-none border border-slate-100" value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} />
+                    <label className="text-[11px] font-black text-slate-400 uppercase ml-2">Цена</label>
+                    <input type="text" placeholder="Напр: 150 000 сум" className="w-full p-4 bg-slate-50 rounded-2xl outline-none border border-slate-100 text-slate-900" value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} />
                 </div>
 
-                {/* COMBINED IMAGE FIELD */}
                 <div className="lg:col-span-2 space-y-2">
                     <label className="text-[11px] font-black text-slate-400 uppercase ml-2">Фото (Ссылка или Файл)</label>
                     <div className="flex gap-2">
@@ -176,7 +212,7 @@ const Admin = () => {
                 </div>
 
                 <div className="flex items-end">
-                    <button className="w-full bg-slate-900 text-white font-black rounded-2xl py-4 hover:bg-blue-600 transition-all shadow-lg hover:shadow-blue-200 hover:-translate-y-1 active:translate-y-0">СОЗДАТЬ ТОВАР</button>
+                    <button className="w-full bg-slate-900 text-white font-black rounded-2xl py-4 hover:bg-blue-600 transition-all shadow-lg hover:shadow-blue-200 hover:-translate-y-1">СОЗДАТЬ ТОВАР</button>
                 </div>
               </form>
             </div>
@@ -184,7 +220,7 @@ const Admin = () => {
             {/* LIST */}
             <div className="grid gap-4">
               <div className="relative mb-4">
-                  <input type="text" placeholder="Быстрый поиск по списку..." className="w-full p-5 pl-14 bg-white rounded-3xl shadow-sm border border-slate-100 outline-none focus:ring-4 focus:ring-blue-50" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                  <input type="text" placeholder="Быстрый поиск по списку..." className="w-full p-5 pl-14 bg-white rounded-3xl shadow-sm border border-slate-100 outline-none focus:ring-4 focus:ring-blue-50 text-slate-900" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                   <span className="absolute left-6 top-1/2 -translate-y-1/2 opacity-30">🔍</span>
               </div>
               {filteredProducts.map(p => (
@@ -208,10 +244,11 @@ const Admin = () => {
                   </div>
                 </div>
               ))}
+              {filteredProducts.length === 0 && <p className="text-center text-slate-400 font-bold py-10 italic">Ничего не найдено...</p>}
             </div>
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 gap-10 animate-in slide-in-from-bottom-5 duration-500">
+          <div className="grid md:grid-cols-2 gap-10">
             {team.map(m => (
               <div key={m.id} className="bg-white p-10 rounded-[3.5rem] shadow-sm border border-slate-50 group transition-all hover:shadow-xl">
                 <div className="flex flex-col sm:flex-row gap-8 mb-8">
@@ -244,13 +281,13 @@ const Admin = () => {
       </div>
 
       <div className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-50 transition-all duration-700 ${hasChanges ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-24 opacity-0 scale-90 pointer-events-none'}`}>
-        <button onClick={handleSaveAll} className="bg-slate-900 text-white px-16 py-7 rounded-[2.5rem] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.4)] font-black text-xl flex items-center gap-5 hover:bg-blue-600 hover:scale-105 active:scale-95 transition-all">
+        <button onClick={handleSaveAll} className="bg-slate-900 text-white px-16 py-7 rounded-[2.5rem] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.4)] font-black text-xl flex items-center gap-5 hover:bg-blue-600 transition-all">
           <span className="text-2xl">💾</span> СОХРАНИТЬ ИЗМЕНЕНИЯ
         </button>
       </div>
 
       {showToast && (
-        <div className="fixed top-10 left-1/2 -translate-x-1/2 bg-white border-2 border-emerald-500 text-emerald-600 px-12 py-5 rounded-[2rem] shadow-2xl z-[60] font-black flex items-center gap-3 animate-in fade-in zoom-in duration-300">
+        <div className="fixed top-10 left-1/2 -translate-x-1/2 bg-white border-2 border-emerald-500 text-emerald-600 px-12 py-5 rounded-[2rem] shadow-2xl z-[60] font-black flex items-center gap-3 animate-in fade-in zoom-in">
           <span className="bg-emerald-500 text-white w-7 h-7 rounded-full flex items-center justify-center text-[10px]">✓</span> 
           ДАННЫЕ ОБНОВЛЕНЫ
         </div>

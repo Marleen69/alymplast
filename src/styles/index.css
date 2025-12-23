@@ -3,29 +3,12 @@
 @tailwind utilities;
 
 @layer base {
-  * {
-    outline: none;
-    /* Удали border: none; отсюда, иначе у тебя пропадут все рамки у кнопок и инпутов */
-  }
   body {
-    /* Добавляем переход transition для плавной смены темы */
-    @apply bg-white text-gray-900 font-sans transition-colors duration-300;
+    @apply transition-colors duration-300 bg-white text-gray-900;
   }
   
-  /* Настройка для темной темы */
+  /* Когда у <html> есть класс dark, меняем фон body */
   .dark body {
-    @apply bg-slate-900 text-white;
+    @apply bg-slate-950 text-white;
   }
-}
-
-@layer utilities {
-  .scroll-smooth {
-    scroll-behavior: smooth;
-  }
-}
-
-.leaflet-container {
-  height: 100%;
-  width: 100%;
-  z-index: 1;
 }

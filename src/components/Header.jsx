@@ -2,30 +2,35 @@ import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLanguage } from '../contexts/LanguageContext'
-import { useFavorites } from '../contexts/FavoritesContext' // 1. Импортируем хук
+import { useFavorites } from '../contexts/FavoritesContext'
 import { translations } from '../data/translations'
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [user, setUser] = useState(null)
-  const [isDark, setIsDark] = useState(localStorage.getItem('theme') === 'dark')
+  
+  // Инициализация темы из localStorage
+  const [isDark, setIsDark] = useState(() => {
+    return localStorage.getItem('theme') === 'dark'
+  })
 
   const { language, toggleLanguage } = useLanguage()
-  const { favorites } = useFavorites() // 2. Получаем список избранного
+  const { favorites } = useFavorites()
   const location = useLocation()
   const t = translations[language]
 
-  // ... (весь твой useEffect для тем и скролла остается без изменений)
+  // Логика переключения темы
   useEffect(() => {
+    const root = window.document.documentElement;
     if (isDark) {
-      document.documentElement.classList.add('dark')
-      localStorage.setItem('theme', 'dark')
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
     } else {
-      document.documentElement.classList.remove('dark')
-      localStorage.setItem('theme', 'light')
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
     }
-  }, [isDark])
+  }, [isDark]);
 
   const checkUser = () => {
     const savedUser = localStorage.getItem('current_user')
@@ -94,8 +99,7 @@ const Header = () => {
           </nav>
 
           <div className="flex items-center space-x-4">
-            
-            {/* 3. КНОПКА ИЗБРАННОГО (рядом с темой) */}
+            {/* Favorites */}
             <Link to="/favorites" className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-red-500 transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
@@ -107,9 +111,10 @@ const Header = () => {
               )}
             </Link>
 
+            {/* THEME TOGGLE BUTTON */}
             <button
               onClick={() => setIsDark(!isDark)}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-yellow-400"
+              className="p-2 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-yellow-400 hover:scale-110 transition-transform"
             >
               {isDark ? "🌙" : "☀️"}
             </button>
@@ -118,7 +123,7 @@ const Header = () => {
               {language.toUpperCase()}
             </button>
 
-            {/* КНОПКА БУРГЕРА */}
+            {/* Burger */}
             <button 
               className="md:hidden p-2 text-gray-700 dark:text-gray-300"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -135,14 +140,14 @@ const Header = () => {
         </div>
       </div>
 
-      {/* МОБИЛЬНОЕ МЕНЮ */}
+      {/* Mobile Menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-white dark:bg-slate-900 border-t dark:border-slate-800"
+            className="md:hidden bg-white dark:bg-slate-900 border-t dark:border-slate-800 shadow-xl"
           >
             <div className="px-4 py-6 space-y-4">
               {navItems.map((item) => (
@@ -155,23 +160,6 @@ const Header = () => {
                   {item.label}
                 </Link>
               ))}
-              
-              {/* Добавим избранное и в мобилку для удобства */}
-              <Link 
-                to="/favorites" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center space-x-2 text-lg font-medium text-gray-700 dark:text-gray-200"
-              >
-                <span>{language === 'ru' ? 'Избранное' : 'Favorites'}</span>
-                <span className="text-red-500">({favorites.length})</span>
-              </Link>
-
-              {user && (
-                <div className="pt-4 border-t dark:border-slate-800 flex justify-between items-center">
-                  <span className="dark:text-gray-200">{user.username}</span>
-                  <button onClick={handleLogout} className="text-red-500">Выйти</button>
-                </div>
-              )}
             </div>
           </motion.div>
         )}
