@@ -23,7 +23,7 @@ const Contacts = () => {
     setIsLoading(true)
 
     // --- НАСТРОЙКИ TELEGRAM (Я ВСЁ ИСПРАВИЛ) ---
-    const TELEGRAM_BOT_TOKEN = '8563559964:AAGpgBzBS6P7g2JGJkoEe4kBtD7wLQOhpBk'
+    const TELEGRAM_BOT_TOKEN = '7983320022:AAGTT9f2Utf4LTUwMWgU5e-xN93zypVyF1E'
     const TELEGRAM_CHAT_ID = '7557980245'
     const API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`
 
