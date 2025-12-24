@@ -9,17 +9,20 @@ const Catalog = () => {
   const { language } = useLanguage()
   const t = translations[language]
   
-  // Состояния для фильтров
   const [selectedCategory, setSelectedCategory] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
-  const [maxPrice, setMaxPrice] = useState(100000) 
+  const [maxPrice, setMaxPrice] = useState(150000) 
   const [allProducts, setAllProducts] = useState([])
 
-  // Загружаем актуальный список товаров
   useEffect(() => {
     const saved = localStorage.getItem('site_products')
     if (saved) {
-      setAllProducts(JSON.parse(saved))
+      try {
+        const parsed = JSON.parse(saved)
+        setAllProducts(Array.isArray(parsed) ? parsed.filter(p => p && typeof p === 'object') : initialProducts)
+      } catch (e) {
+        setAllProducts(initialProducts)
+      }
     } else {
       setAllProducts(initialProducts)
     }
@@ -34,20 +37,22 @@ const Catalog = () => {
     { value: 'sliding', label: t.filterSliding },
   ]
 
-  // Логика фильтрации
   const filteredProducts = allProducts.filter(product => {
+    if (!product) return false;
     const matchesCategory = selectedCategory === '' || product.category === selectedCategory
     const isAvailable = product.inStock !== false 
-    const matchesSearch = 
-      product.name_ru.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.name_en.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesPrice = product.price <= maxPrice
-
+    const query = searchQuery.toLowerCase()
+    const nameRU = String(product.name_ru || product.name || "").toLowerCase()
+    const nameEN = String(product.name_en || product.name || "").toLowerCase()
+    const matchesSearch = nameRU.includes(query) || nameEN.includes(query)
+    const priceValue = parseFloat(product.price) || 0
+    const matchesPrice = priceValue <= maxPrice || !product.price
     return matchesCategory && isAvailable && matchesSearch && matchesPrice
   })
 
   return (
-    <div className="pt-20 min-h-screen bg-gray-50">
+    // ИСПРАВЛЕНО: Убрали dark:bg-slate-950, поставили чистый bg-gray-50
+    <div className="pt-20 min-h-screen bg-gray-50 transition-colors duration-300">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         
         {/* Заголовок */}
@@ -56,11 +61,13 @@ const Catalog = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-10"
         >
+          {/* ИСПРАВЛЕНО: Текст теперь всегда темный для светлого фона */}
           <h1 className="text-5xl font-bold text-gray-900 mb-4">{t.catalogTitle}</h1>
           <p className="text-xl text-gray-600">{t.catalogSubtitle}</p>
         </motion.div>
 
-        {/* БЛОК ФИЛЬТРОВ: ПОИСК И ЦЕНА (СОМ) */}
+        {/* БЛОК ФИЛЬТРОВ */}
+        {/* ИСПРАВЛЕНО: Белый фон без темных режимов */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-12 flex flex-col md:flex-row gap-6 items-end">
           
           {/* Поиск */}
@@ -73,11 +80,11 @@ const Catalog = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={language === 'ru' ? "Например: Окно Akfa..." : "Search..."}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-gray-50 focus:bg-white"
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-gray-50 text-gray-900"
             />
           </div>
 
-          {/* Фильтр по цене в Сомах */}
+          {/* Цена */}
           <div className="w-full md:w-80">
             <div className="flex justify-between mb-2">
               <label className="text-sm font-medium text-gray-700">
@@ -90,7 +97,7 @@ const Catalog = () => {
             <input 
               type="range"
               min="0"
-              max="150000" // Увеличил лимит, так как цены могут быть выше
+              max="150000"
               step="500"
               value={maxPrice}
               onChange={(e) => setMaxPrice(Number(e.target.value))}
@@ -134,7 +141,7 @@ const Catalog = () => {
           </AnimatePresence>
         </motion.div>
 
-        {/* Если пусто */}
+        {/* Пустой результат */}
         {filteredProducts.length === 0 && (
           <motion.div 
             initial={{ opacity: 0 }}
@@ -143,14 +150,8 @@ const Catalog = () => {
           >
             <div className="text-6xl mb-4">🔍</div>
             <p className="text-gray-400 text-xl font-medium">
-              {language === 'ru' ? 'Ничего не найдено в этом диапазоне' : 'No results found in this range'}
+              {language === 'ru' ? 'Ничего не найдено' : 'No results found'}
             </p>
-            <button 
-              onClick={() => {setSearchQuery(''); setMaxPrice(150000); setSelectedCategory('')}}
-              className="mt-4 text-blue-600 hover:underline font-medium"
-            >
-              {language === 'ru' ? 'Сбросить все фильтры' : 'Reset all filters'}
-            </button>
           </motion.div>
         )}
       </div>

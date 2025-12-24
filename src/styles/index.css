@@ -2,13 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    @apply transition-colors duration-300 bg-white text-gray-900;
-  }
-  
-  /* Когда у <html> есть класс dark, меняем фон body */
-  .dark body {
-    @apply bg-slate-950 text-white;
-  }
+/* Устанавливаем белый фон по умолчанию для всего сайта */
+body {
+  background-color: #ffffff;
+  color: #0f172a;
+  @apply transition-colors duration-300;
 }

@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  darkMode: 'class', // Это активирует префиксы dark:
+  darkMode: 'class', // ОБЯЗАТЕЛЬНО должно быть это значение
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
