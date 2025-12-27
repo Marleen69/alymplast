@@ -106,7 +106,7 @@ const Contacts = () => {
                   <p className="text-lg text-gray-900">
                     {language === 'ru'
                       ? 'г. Бишкек, Старый толчок, Улица Орозбекова, 287а'
-                      : 'Bishkek, Stary tolchok, Orozbekova St., 291v'}
+                      : 'Bishkek, Stary tolchok, Orozbekova St., 287a'}
                   </p>
                 </div>
 
