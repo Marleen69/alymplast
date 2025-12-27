@@ -105,7 +105,7 @@ const Contacts = () => {
                   <h3 className="text-sm font-semibold text-gray-500 mb-2">{t.address}</h3>
                   <p className="text-lg text-gray-900">
                     {language === 'ru'
-                      ? 'г. Бишкек, Старый толчок, Улица Орозбекова, 291в'
+                      ? 'г. Бишкек, Старый толчок, Улица Орозбекова, 287а'
                       : 'Bishkek, Stary tolchok, Orozbekova St., 291v'}
                   </p>
                 </div>
