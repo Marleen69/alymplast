@@ -21,7 +21,7 @@ const Calculator = () => {
 
     const w = parseFloat(width) || 0
     const h = parseFloat(height) || 0
-    const exchangeRate = 89 // Курс доллара к сому
+    const exchangeRate = 88 // Курс доллара к сому
 
     // Цена за 1 м² в долларах
     const pricePerUnit = {
