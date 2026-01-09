@@ -120,9 +120,9 @@ const Calculator = () => {
                    type === 'premium' ? (language === 'ru' ? 'Туретский' : 'Premium') : 
                    (language === 'ru' ? 'Узбекский' : 'Luxury')}
                 </div>
-                <div className="text-sm mt-1">
+                {/* <div className="text-sm mt-1">
                   {type === 'standard' ? '35$' : type === 'premium' ? '45$' : '55$'}
-                </div>
+                </div> */}
               </button>
             ))}
           </div>
