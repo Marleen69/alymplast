@@ -11,7 +11,7 @@ const Calculator = () => {
   const [height, setHeight] = useState('')
   const [materialType, setMaterialType] = useState('standard')
   const [calculationSteps, setCalculationSteps] = useState(null)
-  const [totalPrice, setTotalPrice] = useState(null)
+  const [totalPriceSom, setTotalPriceSom] = useState(null)
 
   const calculatePrice = () => {
     if (!width || !height) {
@@ -21,34 +21,40 @@ const Calculator = () => {
 
     const w = parseFloat(width) || 0
     const h = parseFloat(height) || 0
+    const exchangeRate = 89 // Курс доллара к сому
 
-    // Цена за единицу площади для каждого типа материала
+    // Цена за 1 м² в долларах
     const pricePerUnit = {
       standard: 35,
       premium: 45,
       lux: 55,
     }
 
-    // Шаг 1: Высота × Ширина = площадь
-    const step1 = w * h
-    const step1Text = language === 'ru' 
-      ? `Высота × Ширина = ${h} × ${w} = <b>${step1}</b>`
-      : `Height × Width = ${h} × ${w} = <b>${step1}</b>`
+    // 1. Считаем площадь в м²
+    const area = (w * h) / 10000
+    const areaFormatted = area.toFixed(2)
 
-    // Шаг 2: Площадь × Цена за единицу
-    const price = pricePerUnit[materialType]
-    const step2 = step1 * price
+    // 2. Считаем цену в долларах
+    const priceUsd = pricePerUnit[materialType]
+    const totalUsd = area * priceUsd
+
+    // 3. Переводим в сомы
+    const totalSom = Math.round(totalUsd * exchangeRate)
+
     const materialName = language === 'ru'
       ? materialType === 'standard' ? 'Стандарт' : materialType === 'premium' ? 'Премиум' : 'Люкс'
       : materialType === 'standard' ? 'Standard' : materialType === 'premium' ? 'Premium' : 'Luxury'
-    
-    const step2Text = language === 'ru'
-      ? `${step1} × ${price} (${materialName}) = <b>${step2}</b>`
-      : `${step1} × ${price} (${materialName}) = <b>${step2}</b>`
 
-    // Итог
-    const total = Math.round(step2)
-    setTotalPrice(total)
+    // Текст шагов (в долларах, как ты просил)
+    const step1Text = language === 'ru' 
+      ? `Площадь: ${h}см × ${w}см = <b>${areaFormatted} м²</b>`
+      : `Area: ${h}cm × ${w}cm = <b>${areaFormatted} m²</b>`
+
+    const step2Text = language === 'ru'
+      ? `${areaFormatted} м² × ${priceUsd}$ (${materialName}) = <b>${totalUsd.toFixed(2)}$</b>`
+      : `${areaFormatted} m² × ${priceUsd}$ (${materialName}) = <b>${totalUsd.toFixed(2)}$</b>`
+
+    setTotalPriceSom(totalSom)
     setCalculationSteps([
       { step: 1, text: step1Text },
       { step: 2, text: step2Text },
@@ -69,29 +75,27 @@ const Calculator = () => {
       <div className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            {language === 'ru' ? 'Высота' : 'Height'}
+            {language === 'ru' ? 'Высота (см)' : 'Height (cm)'}
           </label>
           <input
             type="number"
             value={height}
             onChange={(e) => setHeight(e.target.value)}
-            className="w-full px-4 py-2 rounded-lg"
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-600 outline-none"
             placeholder={language === 'ru' ? 'Высота' : 'Height'}
-            step="0.01"
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            {language === 'ru' ? 'Ширина' : 'Width'}
+            {language === 'ru' ? 'Ширина (см)' : 'Width (cm)'}
           </label>
           <input
             type="number"
             value={width}
             onChange={(e) => setWidth(e.target.value)}
-            className="w-full px-4 py-2 rounded-lg"
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-600 outline-none"
             placeholder={language === 'ru' ? 'Ширина' : 'Width'}
-            step="0.01"
           />
         </div>
 
@@ -100,42 +104,27 @@ const Calculator = () => {
             {t.materialType}
           </label>
           <div className="grid grid-cols-3 gap-3">
-            <button
-              type="button"
-              onClick={() => setMaterialType('standard')}
-              className={`px-4 py-3 rounded-lg font-medium transition-all ${
-                materialType === 'standard'
-                  ? 'bg-primary-600 text-white shadow-lg'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              <div className="font-semibold">{language === 'ru' ? 'Стандарт' : 'Standard'}</div>
-              <div className="text-sm mt-1">35$</div>
-            </button>
-            <button
-              type="button"
-              onClick={() => setMaterialType('premium')}
-              className={`px-4 py-3 rounded-lg font-medium transition-all ${
-                materialType === 'premium'
-                  ? 'bg-primary-600 text-white shadow-lg'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              <div className="font-semibold">{language === 'ru' ? 'Премиум' : 'Premium'}</div>
-              <div className="text-sm mt-1">45$</div>
-            </button>
-            <button
-              type="button"
-              onClick={() => setMaterialType('lux')}
-              className={`px-4 py-3 rounded-lg font-medium transition-all ${
-                materialType === 'lux'
-                  ? 'bg-primary-600 text-white shadow-lg'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              <div className="font-semibold">{language === 'ru' ? 'Люкс' : 'Luxury'}</div>
-              <div className="text-sm mt-1">55$</div>
-            </button>
+            {['standard', 'premium', 'lux'].map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setMaterialType(type)}
+                className={`px-4 py-3 rounded-lg font-medium transition-all ${
+                  materialType === type
+                    ? 'bg-primary-600 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <div className="font-semibold">
+                  {type === 'standard' ? (language === 'ru' ? 'Китай' : 'Standard') : 
+                   type === 'premium' ? (language === 'ru' ? 'Туретский' : 'Premium') : 
+                   (language === 'ru' ? 'Узбекский' : 'Luxury')}
+                </div>
+                <div className="text-sm mt-1">
+                  {type === 'standard' ? '35$' : type === 'premium' ? '45$' : '55$'}
+                </div>
+              </button>
+            ))}
           </div>
         </div>
 
@@ -146,7 +135,7 @@ const Calculator = () => {
           {language === 'ru' ? 'Рассчитать' : 'Calculate'}
         </button>
 
-        {calculationSteps && totalPrice !== null && (
+        {calculationSteps && totalPriceSom !== null && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -161,10 +150,10 @@ const Calculator = () => {
                 />
               ))}
             </div>
-            <div className="text-center pt-4">
+            <div className="text-center pt-4 border-t border-primary-100">
               <p className="text-sm text-gray-600 mb-2">{t.totalPrice}</p>
               <p className="text-4xl font-bold text-primary-600">
-                {totalPrice.toLocaleString()} {language === 'ru' ? 'сом' : 'som'}
+                {totalPriceSom.toLocaleString()} {language === 'ru' ? 'сом' : 'som'}
               </p>
             </div>
           </motion.div>
@@ -175,9 +164,3 @@ const Calculator = () => {
 }
 
 export default Calculator
-
-
-
-
-
-
